@@ -18,6 +18,7 @@ verify - read password from stdin, receive hash from first argument and retuns r
 
 cmd_init() {
     test -e $PEPPER_FILE && die "Already initialized" 1
+    umask 0077  # -rw-------
     date +%s%N | sha256sum | head -c 64 > $PEPPER_FILE
 }
 
