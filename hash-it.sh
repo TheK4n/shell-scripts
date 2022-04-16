@@ -2,6 +2,7 @@
 
 PEPPER_FILE=~/.hash_it_pepper
 
+
 die() {
     echo "$(basename "$0"): $1" >&2
     exit $2
@@ -37,7 +38,13 @@ cmd_hash_password() {
     salt="$(cmd_gen_salt)"
     pepper="$(get_pepper)"
 
-    echo "$(echo $password$salt$pepper | sha256sum | awk '{printf $1}')$salt"
+    pre_hash=$password$salt$pepper
+
+    for i in {1..100}; do
+        pre_hash="$(echo $pre_hash$salt$pepper | sha256sum | head -c 64)"
+    done
+
+    echo "$pre_hash$salt"
 }
 
 cmd_verify() {
@@ -49,7 +56,13 @@ cmd_verify() {
     salt="$(echo "$pre_hash" | tail -c 65)"
     pepper="$(get_pepper)"
 
-    test "$1" = "$(echo $password$salt$pepper | sha256sum | awk '{printf $1}')$salt" && echo "Ok" || die "Validation failed" 1
+    pre_hash=$password$salt$pepper
+
+    for i in {1..100}; do
+        pre_hash="$(echo $pre_hash$salt$pepper | sha256sum | head -c 64)"
+    done
+
+    test "$1" = "$pre_hash$salt" && echo "Ok" || die "Validation failed" 1
 }
 
 
