@@ -30,6 +30,7 @@ get_pepper() {
 }
 
 cmd_hash_password() {
+    test -e $PEPPER_FILE || die "Not initialized" 1
 
     password=$(cat)
     salt="$(cmd_gen_salt)"
@@ -39,6 +40,7 @@ cmd_hash_password() {
 }
 
 cmd_verify() {
+    test -e $PEPPER_FILE || die "Not initialized" 1
 
     password=$(cat)
     pre_hash="$1"
