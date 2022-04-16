@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PEPPER_FILE=.pepper
+PEPPER_FILE=~/.hash_it_pepper
 
 die() {
     echo "$(basename "$0"): $1" >&2
