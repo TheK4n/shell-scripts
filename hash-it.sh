@@ -14,7 +14,7 @@ cmd_help() {
 init - initialize
 salt - gen salt
 hash - read password from stdin and write hash and salt to stdout
-verify - read password from stdin, receive hash from first argument and retuns result"
+verify - read password:hash from stdin retuns result"
 }
 
 cmd_init() {
@@ -34,7 +34,7 @@ get_pepper() {
 cmd_hash_password() {
     test -e $PEPPER_FILE || die "Not initialized" 1
 
-    password=$(cat)
+    password="$(cat)"
     salt="$(cmd_gen_salt)"
     pepper="$(get_pepper)"
 
@@ -50,10 +50,13 @@ cmd_hash_password() {
 cmd_verify() {
     test -e $PEPPER_FILE || die "Not initialized" 1
 
-    password=$(cat)
-    pre_hash="$1"
-    test -z "$pre_hash" && bye "No hash" 1
-    salt="$(echo "$pre_hash" | tail -c 65)"
+    password_hash="$(cat)"
+    password="$(echo $password_hash | awk -F ':' '{printf $1}')"
+    prev_hash="$(echo $password_hash | awk -F ':' '{printf $2}')"
+    test -z "$password" && die "No password (password:hash)" 1
+    test -z "$prev_hash" && die "No hash (password:hash)" 1
+
+    salt="$(echo "$prev_hash" | tail -c 65)"
     pepper="$(get_pepper)"
 
     pre_hash=$password$salt$pepper
@@ -62,7 +65,7 @@ cmd_verify() {
         pre_hash="$(echo $pre_hash$salt$pepper | sha256sum | head -c 64)"
     done
 
-    test "$1" = "$pre_hash$salt" && echo "Ok" || die "Validation failed" 1
+    test "$prev_hash" = "$pre_hash$salt" && echo "Ok" || die "Validation failed" 1
 }
 
 
