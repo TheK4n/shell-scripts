@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 PEPPER_FILE=~/.hash_it_pepper
-SALT_LEN=64
-
+ROUNDS=$((2 ** 8))
+_SALT_LEN=64
 
 die() {
     echo "$(basename "$0"): $1" >&2
@@ -20,7 +20,7 @@ check - read password:hash from stdin retuns result"
 
 
 cmd_gen_salt() {
-    dd if=/dev/urandom bs=16 count=8 2>/dev/null | sha256sum | head -c $SALT_LEN
+    dd if=/dev/urandom bs=256 count=16 2>/dev/null | sha256sum | head -c $_SALT_LEN
 }
 
 cmd_init() {
@@ -38,7 +38,7 @@ recursive_prehash() {
     salt=$2
     pepper=$3
     pre_hash=$password$salt$pepper
-    for i in {1..256}; do
+    for (( i = 0; i < $ROUNDS; i++ )); do
         pre_hash="$(echo $pre_hash$salt$pepper | sha512sum | head -c 128)"
     done
     echo $pre_hash
@@ -65,12 +65,12 @@ cmd_verify() {
     test -z "$password" && die "No password (password:hash)" 1
     test -z "$prev_hash" && die "No hash (password:hash)" 1
 
-    salt="$(echo "$prev_hash" | tail -c $(($SALT_LEN + 1)))"
+    salt="$(echo "$prev_hash" | tail -c $(($_SALT_LEN + 1)))"
     pepper="$(get_pepper)"
 
     pre_hash=$(recursive_prehash $password $salt $pepper)
 
-    test "$prev_hash" = "$pre_hash$salt" && echo "Ok" || die "Validation failed" 1
+    test "$prev_hash" = "$pre_hash$salt" && echo "OK" || die "Validation failed" 1
 }
 
 
@@ -79,7 +79,7 @@ case "$1" in
     help) shift;   cmd_help    "$@" ;;
     salt) shift;   cmd_gen_salt "$@";;
     hash) shift;   cmd_hash_password "$@";;
-    check) shift; cmd_verify "$@";;
+    check) shift;  cmd_verify "$@";;
 
     *)             cmd_help "$@";;
 esac
