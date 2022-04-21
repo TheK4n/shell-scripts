@@ -15,7 +15,7 @@ cmd_help() {
 init - initialize
 salt - gen salt
 hash - read password from stdin and write hash and salt to stdout
-verify - read password:hash from stdin retuns result"
+check - read password:hash from stdin retuns result"
 }
 
 
@@ -79,7 +79,7 @@ case "$1" in
     help) shift;   cmd_help    "$@" ;;
     salt) shift;   cmd_gen_salt "$@";;
     hash) shift;   cmd_hash_password "$@";;
-    verify) shift; cmd_verify "$@";;
+    check) shift; cmd_verify "$@";;
 
     *)             cmd_help "$@";;
 esac
