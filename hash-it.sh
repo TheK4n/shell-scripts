@@ -31,6 +31,10 @@ get_pepper() {
     cat $PEPPER_FILE
 }
 
+get_prehash() {
+    cat | sha512sum | head -c 128
+}
+
 cmd_hash_password() {
     test -e $PEPPER_FILE || die "Not initialized" 1
 
@@ -40,8 +44,8 @@ cmd_hash_password() {
 
     pre_hash=$password$salt$pepper
 
-    for i in {1..100}; do
-        pre_hash="$(echo $pre_hash$salt$pepper | sha256sum | head -c 64)"
+    for i in {1..150}; do
+        pre_hash="$(echo $pre_hash$salt$pepper | get_prehash)"
     done
 
     echo "$pre_hash$salt"
@@ -61,8 +65,8 @@ cmd_verify() {
 
     pre_hash=$password$salt$pepper
 
-    for i in {1..100}; do
-        pre_hash="$(echo $pre_hash$salt$pepper | sha256sum | head -c 64)"
+    for i in {1..150}; do
+        pre_hash="$(echo $pre_hash$salt$pepper | get_prehash)"
     done
 
     test "$prev_hash" = "$pre_hash$salt" && echo "Ok" || die "Validation failed" 1
