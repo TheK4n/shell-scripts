@@ -37,7 +37,7 @@ recursive_prehash() {
     salt=$2
     pepper=$3
     pre_hash=$password$salt$pepper
-    for i in {1..150}; do
+    for i in {1..256}; do
         pre_hash="$(echo $pre_hash$salt$pepper | sha512sum | head -c 128)"
     done
     echo $pre_hash
