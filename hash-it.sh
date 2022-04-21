@@ -18,14 +18,15 @@ hash - read password from stdin and write hash and salt to stdout
 verify - read password:hash from stdin retuns result"
 }
 
+
+cmd_gen_salt() {
+    dd if=/dev/urandom bs=16 count=8 2>/dev/null | sha256sum | head -c $SALT_LEN
+}
+
 cmd_init() {
     test -e $PEPPER_FILE && die "Already initialized" 1
     umask 0077  # -rw-------
-    date +%s%N | sha256sum | head -c $SALT_LEN > $PEPPER_FILE
-}
-
-cmd_gen_salt() {
-    date +%s%N | sha256sum | head -c $SALT_LEN
+    cmd_gen_salt > $PEPPER_FILE
 }
 
 get_pepper() {
