@@ -47,9 +47,9 @@ cmd_restore() {
 
 case "$1" in
     backup) shift;   cmd_backup    "$@" ;;
-    help) shift;   cmd_help    "$@" ;;
-    restore) shift;   cmd_restore "$@";;
+    help) shift;     cmd_help    "$@" ;;
+    restore) shift;  cmd_restore "$@";;
 
-    *)             cmd_help "$@";;
+    *) cmd_help "$@";;
 esac
 exit 0
