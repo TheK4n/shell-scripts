@@ -7,21 +7,20 @@ ttys=$(ps aux | grep "$(basename "$SHELL")$" | grep "^$USER\s" | awk '{print("/d
 
 while getopts ":l :d :c :s" opt; do
 
-  # shellcheck disable=SC2213
   case $opt in
-    l)
+    l)  # list ttys
       echo -e "$current_tty - Current\n$ttys" | sort
       ;;
-    d)
+    d)  # detect other ttys
       for i in $ttys
       do
         echo -e "\nkan: detect: $i" > "$i" &
       done
       ;;
-    c)
+    c)  # current tty
       echo "$current_tty"
       ;;
-    s)
+    s)  # broadcast
       read -r input_text
       for i in $ttys
       do
