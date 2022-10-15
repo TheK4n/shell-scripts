@@ -12,12 +12,14 @@ _is_registered_in_fstab_by_uuid_and_mountpoint() {
 _create_symbolic_link_to_home() {
     mkdir ~/media
 
-    DEVICE_LABEL="$(lsblk -no LABEL "$1")"
+    PATH_TO_DEVICE="$1"
+    DEVICE_UUID="$(lsblk -no uuid "$PATH_TO_DEVICE")"
+    DEVICE_LABEL="$(lsblk -no LABEL "$PATH_TO_DEVICE")"
+    MOUNTPOINT="/media/$USER/$DEVICE_UUID"
 
     if [ -n "$DEVICE_LABEL" ]; then
         ln -s "$MOUNTPOINT" "$HOME/media/$DEVICE_LABEL"
     else
-        DEVICE_UUID="$2"
         ln -s "$MOUNTPOINT" "$HOME/media/$DEVICE_UUID"
     fi
 }
@@ -28,14 +30,14 @@ cmd_reg() {
     test -b "$PATH_TO_DEVICE" || die "'$PATH_TO_DEVICE' isn\`t a block device" 1
     DEVICE_UUID="$(lsblk -no uuid "$PATH_TO_DEVICE")"
 
-    FSTAB_STRING="UUID=$DEVICE_UUID /media/$USER/$DEVICE_UUID $(lsblk -no FSTYPE "$PATH_TO_DEVICE") noauto,nofail,users,rw"
-    _is_registered_in_fstab_by_uuid_and_mountpoint "UUID=$DEVICE_UUID /media/$USER/$DEVICE_UUID" || (
-        MOUNTPOINT="/media/$USER/$DEVICE_UUID"
+    MOUNTPOINT="/media/$USER/$DEVICE_UUID"
+    FSTAB_STRING="UUID=$DEVICE_UUID $MOUNTPOINT $(lsblk -no FSTYPE "$PATH_TO_DEVICE") noauto,nofail,users,rw"
+    _is_registered_in_fstab_by_uuid_and_mountpoint "UUID=$DEVICE_UUID $MOUNTPOINT" || (
         sudo mkdir -p "$MOUNTPOINT"
         sudo chgrp "$USER" "/media/$USER" "$MOUNTPOINT"
         sudo chmod g+rx "/media/$USER" "$MOUNTPOINT"
 
-        _create_symbolic_link_to_home "$PATH_TO_DEVICE" "$DEVICE_UUID"
+        _create_symbolic_link_to_home "$PATH_TO_DEVICE"
 
         echo "$FSTAB_STRING" | sudo tee --append /etc/fstab >/dev/null
         sudo systemctl daemon-reload
@@ -63,7 +65,7 @@ cmd_umount() {
         if [ -n "$MOUNTPOINT" ]; then
             umount "$1"
         else
-            die "'$1' isn\`t mounted in $MOUNTPOINT" 4
+            die "'$1' doesn\`t mounted in $MOUNTPOINT" 4
         fi
     )
 }
