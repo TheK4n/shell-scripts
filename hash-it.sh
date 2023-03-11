@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PEPPER_FILE=~/.hash_it_pepper
+PEPPER_FILE="$HOME/.local/state/hash-it/pepper"
 ROUNDS=$((2 ** 8))
 _SALT_LEN=64
 
@@ -26,6 +26,7 @@ cmd_gen_salt() {
 cmd_init() {
     test -e $PEPPER_FILE && die "Already initialized" 1
     umask 0077  # -rw-------
+    mkdir -p "$(dirname "$PEPPER_FILE")"
     cmd_gen_salt > $PEPPER_FILE
 }
 
@@ -76,7 +77,6 @@ cmd_verify() {
 
 case "$1" in
     init) shift;   cmd_init    "$@" ;;
-    help) shift;   cmd_help    "$@" ;;
     salt) shift;   cmd_gen_salt "$@";;
     hash) shift;   cmd_hash_password "$@";;
     check) shift;  cmd_verify "$@";;
